@@ -6,11 +6,18 @@ using namespace std;
 int main(void) {
     string str;
     int n;
-    int i;
+//     int i;
+    
+//     cin >> str >> n;
+    
+//     for(i = 0; i < n; ++i)
+//     {
+//         cout << str;
+//     }
     
     cin >> str >> n;
     
-    for(i = 0; i < n; ++i)
+    while(n--)
     {
         cout << str;
     }
