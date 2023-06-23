@@ -7,7 +7,7 @@ int main(void) {
     string str;
     cin >> str;
     
-    cout << str;
+    cout << str << endl;
     
     return 0;
 }
