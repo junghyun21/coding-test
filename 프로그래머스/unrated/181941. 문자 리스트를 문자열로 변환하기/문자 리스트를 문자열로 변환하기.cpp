@@ -6,7 +6,7 @@ using namespace std;
 string solution(vector<string> arr) {
     string answer = "";
     
-    for(string a : arr)
+    for(auto a : arr)
     {
         answer += a;
     }
