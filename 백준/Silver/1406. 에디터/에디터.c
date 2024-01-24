@@ -1,129 +1,127 @@
-// 입력된 문자열의 추가 및 삭제가 빈번히 발생
-// 따라서 배열보다 연결 리스트에 값을 저장하고 관리하는 것이 더 효율적
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_SIZE 100001
-
-typedef struct Node{
-	char alphabet;
-	struct Node *front;
-	struct Node *back;
-}Node;
-
-typedef struct Header{
-	Node *cursor;
-	Node *head;
-}Header;
-
-void init(Header *list); // 헤더 노드 초기화 (연결 리스트 생성)
-void insertNodeCursor(Header *list, char alphabet); // 커서 위치에 문자(노드) 추가
-void deleteNodeCursor(Header *list); // 커서 왼쪽에 있는 문자 삭제
-void printString(Header *list); // 연결 리스트에 저장된 문자열 출력
-
-int main()
+typedef struct node
 {
-	Header list;
-	char string[MAX_SIZE];
-	char ch;
-	int num, i;
+    struct node *prev;
+    char data;
+    struct node *next;
+} node;
 
-	// 리스트 생성 및 초기화
-	init(&list);
+node *list, *cursor;
 
-	// 문자열(string)과 입력할 명령어의 개수(num) 입력
-	scanf("%s", string);
-	scanf("%d", &num);
+// 문자를 연결리스트에 저장한다.
+void insert(char c)
+{
+    node *new = (node *)malloc(sizeof(node));
+    new->data = c;
 
-	// 입력받은 문자열을 연결 리스트에 저장
-	for(i = 0; string[i]; i++)
-		insertNodeCursor(&list, string[i]);
+    // 기존에 아무런 값도 들어오지 않은 상태라면
+    if (list == NULL)
+    {
+        list = new; // list는 맨 앞을 나타낸다
+        cursor = new;
+    }
+    if (cursor -> next != NULL) {
+        // newNode의 뒤쪽 먼저 링크들을 연결한다.
+        new->next = cursor->next;
+        cursor->next->prev = new;
+        // newNode의 앞쪽 링크들을 연결한다.
+        cursor->next = new;
+        new->prev = cursor;
+        cursor = new; // 나중에 커서의 위치를 변경시킨다.
+    }
+    else
+    {
+        new->prev = cursor;
+        cursor->next = new;
+        new->next = NULL; // 수정
+        cursor = new;
+    }
+}
+// 커서를 왼쪽으로 한 칸 옮김 (커서가 문장의 맨 앞이면 무시한다. )
+void left()
+{
+    if (cursor->prev == NULL){
+        return;
+    }
+    else
+        cursor = cursor->prev;
+}
+// 커서를 오른쪽으로 한 칸 옮김 (커서가 문장의 맨 뒤면 무시된다. )
+void right()
+{
+    if (cursor->next == NULL)
+        return;
+    else
+        cursor = cursor->next;
+}
+// 커서의 위치로 커서에 있는 노드를 삭제해야한다.
+void delete()
+{
+    // 삭제하고 싶은 노드를 가리키는 포인터를 하나 더 만든다.
+    node *delete = cursor;
+    if (cursor->prev == NULL)
+        return;
 
-	// 명령어를 입력 받고 해당하는 명령어 수행
-	while(num--){
-		getchar();
-		scanf("%c", &ch);
-
-		switch (ch)
-		{
-			// 커서를 왼쪽으로 한 칸 옮김 (커서가 문장의 맨 앞이면 무시)
-			case 'L':
-				if(list.cursor->front)
-					list.cursor = list.cursor->front;
-				break;
-
-			// 커서를 오른쪽으로 한 칸 옮김 (커서가 문장의 맨 뒤면 무시)
-			case 'D':
-				if(list.cursor->back)
-					list.cursor = list.cursor->back;
-				break;
-
-			// 커서 왼쪽에 있는 문자 삭제 (커서가 문장의 맨 앞이면 무시)
-			case 'B':
-				if(list.cursor->front)
-					deleteNodeCursor(&list);
-				break;
-
-			// 뒤에 같이 입력된 문자를 커서 왼쪽에 추가
-			case 'P':
-				getchar();
-				scanf(" %c", &ch);
-				insertNodeCursor(&list, ch);	
-		}
-	}
-
-	printString(&list);
-
-	return 0;
+    else if(cursor -> next == NULL) {
+        delete -> prev -> next = delete ->next;
+        cursor = cursor -> prev;
+        free(delete);
+    }
+    else
+    {
+        delete->prev->next = delete->next;
+        delete->next->prev = delete->prev;
+        cursor = delete->prev;
+        free(delete);
+    }
 }
 
-void init(Header *list)
+void printList(node *list)
 {
-	// 더미 노드
-	Node *newNode = (Node *)malloc(sizeof(Node));
-
-	newNode->front = NULL;
-	newNode->back = NULL;
-
-	list->head = list->cursor= newNode;
+    node *current = list->next;
+    while (current != NULL)
+    {
+        fprintf(stdout, "%c", current->data);
+        current = current->next;
+    }
+    fprintf(stdout, "\n");
 }
 
-void insertNodeCursor(Header *list, char alphabet)
+int main(int argc, char *argv[])
 {
-	Node *newNode = (Node *)malloc(sizeof(Node));
-	newNode->alphabet = alphabet;
+    char editor; // 문자열을 입력한다.
+    int M;       // 명령어를 입력할 개수를 받아온다.
+    list = (node *)malloc(sizeof(node));
+    list->next = NULL;                     // 초기화해준다.
+    cursor = (node *)malloc(sizeof(node)); // 움직일 커서를 선택한다.
+    cursor = list;
 
-	newNode->front = list->cursor;
-	newNode->back = list->cursor->back;
+    while ((editor = getchar()) != '\n')
+        insert(editor);
 
-	if(list->cursor->back != NULL)
-		list->cursor->back->front = newNode;
-	list->cursor->back = newNode;
+    scanf("%d", &M); // 명령어를 입력 할 개수를 받기
+    getchar();       // 버퍼비우기
+    for (int i = 0; i < M; i++)
+    {
+        scanf("%c", &editor);
+        getchar();
+        if (editor == 'L')
+            left();
+        else if (editor == 'D')
+            right();
+        else if (editor == 'B')
+            delete ();
+        else if (editor == 'P')
+        {
+            char item;
+            scanf("%c", &item);
+            getchar();
+            insert(item);
+        }
+    }
 
-	list->cursor = newNode;
-}
-
-void deleteNodeCursor(Header *list)
-{
-	Node *temp = list->cursor;
-
-	list->cursor = temp->front;
-
-	// 맨 앞에 더미노드가 있기 때문에 삭제할 노드가 tail인 경우만 예외처리하면 됨
-	temp->front->back = temp->back;
-	if(temp->back)
-		temp->back->front = temp->front;
-
-	free(temp);
-}
-
-void printString(Header *list)
-{
-	Node *temp = list->head->back;
-
-	while(temp != NULL){
-		printf("%c", temp->alphabet);
-		temp = temp->back;
-	}
-	printf("\n");
+    printList(list);
+    return 0;
 }
