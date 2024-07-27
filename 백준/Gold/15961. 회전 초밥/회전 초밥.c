@@ -1,0 +1,69 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+int main()
+{
+    int *dishes;
+    int *sushis;
+    int n, d, k, c;
+    int newIdx, oldIdx;
+    int max, cnt;
+    bool hasCoupon;
+    int i;
+
+    (void)scanf("%d %d %d %d\n", &n, &d, &k, &c);
+
+    dishes = (int *)malloc(sizeof(int) * (n + 1));
+    sushis = (int *)malloc(sizeof(int) * (d + 1));
+
+    for(i = 1; i <= n; i++)
+        scanf("%d", &dishes[i]);
+
+    for(i = 1; i <= d; i++)
+        sushis[i] = 0;
+
+    for(i = 1, max = 0, cnt = 0, hasCoupon = false; i < n + k; i++){
+        oldIdx = i > k ? i - k : 0;
+        if(i > n)
+            newIdx = i % n;
+        else
+            newIdx = i;
+
+        //printf("i: %d, old: %d, new: %d\n", i, oldIdx, newIdx);
+        //printf("dishes[%d]: %d, sushis[%d]: %d\n", newIdx, dishes[newIdx], dishes[newIdx], sushis[dishes[newIdx]]);
+
+        if(0 == sushis[dishes[newIdx]]++)
+            cnt++;
+
+        if(oldIdx && !(--sushis[dishes[oldIdx]]))
+            cnt--;
+
+        //printf("cnt: %d, max: %d\n", cnt, max);
+        if(max < cnt || (max == cnt && hasCoupon)){
+            max = cnt;
+            hasCoupon = false;
+
+            for(int i = oldIdx + 1, j = 0; j < k; i++, j++){
+                if(i > n)
+                    i %= n;
+
+                //printf("> dishes[%d]: %d\n", i, dishes[i]);
+                if(dishes[i] == c){
+                    hasCoupon = true;
+                    break;
+                }
+            }
+            //printf("hasCoupon = %d\n", hasCoupon);
+        }
+
+        //printf("----------\n");
+    }
+
+    if(!hasCoupon)
+        ++max;
+
+    printf("%d\n", max);
+
+    return 0;
+}
