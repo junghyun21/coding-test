@@ -30,38 +30,19 @@ int main()
         else
             newIdx = i;
 
-        //printf("i: %d, old: %d, new: %d\n", i, oldIdx, newIdx);
-        //printf("dishes[%d]: %d, sushis[%d]: %d\n", newIdx, dishes[newIdx], dishes[newIdx], sushis[dishes[newIdx]]);
-
         if(0 == sushis[dishes[newIdx]]++)
             cnt++;
 
         if(oldIdx && !(--sushis[dishes[oldIdx]]))
             cnt--;
 
-        //printf("cnt: %d, max: %d\n", cnt, max);
-        if(max < cnt || (max == cnt && hasCoupon)){
+        if(max <= cnt){
             max = cnt;
-            hasCoupon = false;
-
-            for(int i = oldIdx + 1, j = 0; j < k; i++, j++){
-                if(i > n)
-                    i %= n;
-
-                //printf("> dishes[%d]: %d\n", i, dishes[i]);
-                if(dishes[i] == c){
-                    hasCoupon = true;
-                    break;
-                }
-            }
-            //printf("hasCoupon = %d\n", hasCoupon);
+            
+            if(!sushis[c])
+                ++max;
         }
-
-        //printf("----------\n");
     }
-
-    if(!hasCoupon)
-        ++max;
 
     printf("%d\n", max);
 
