@@ -1,10 +1,6 @@
 #include <stdio.h>
-#include <stdlib.h>
 
 #define MAX_TEST 40 + 1
-
-
-void fibonacci(int n);
 
 int main()
 {
