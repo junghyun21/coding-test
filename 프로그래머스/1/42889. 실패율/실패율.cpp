@@ -1,47 +1,49 @@
-#include <string>
 #include <vector>
 #include <algorithm>
 
 using namespace std;
 
-vector<int> solution(int N, vector<int> stages) {
-    vector<int> answer;
-    vector<double> fail(N + 1);        // 각 스테이지의 실패율 -> 0으로 초기화
-    vector<bool> isPush(N + 1);     // 각 stage 번호의 answer에 저장 여부 -> false로 초기화
+bool cmp(const pair<double, int> &a, const pair<double, int> &b) {
+    if(a.first == b.first)
+        return a.second < b.second;
     
-    // 더미
-    fail[0] = -1;
-    isPush[0] = true;    
+    return a.first > b.first;
+}
+
+vector<int> solution(int N, vector<int> stages) {
+    vector<int> players(N + 1);     // 각 스테이지의 플레이어 수
+    
+    for(int i = 0; i < stages.size(); ++i) {
+        ++players[stages[i] - 1];
+    }
+    
+    vector<pair<double, int>> result(N);    // first: 실패율, second: 스테이지 번호
+    double failRate;                        // 실패율
+    double failedPlayers;                   // 스테이지에 도달했으나 아직 클리어하지 못한 플레이어 수
+    double totalPlayers;                    // 스테이지에 도달한 플레이어 수
+    
+    totalPlayers = stages.size();
     
     // 실패율 = 스테이지에 도달했으나 아직 클리어하지 못한 플레이어의 수 / 스테이지에 도달한 플레이어 수
-    double successPlayer;      // 도달함
-    double failPlayer;         // 도달했으나 아직 클리어하지 못함
-    for(int i = 1; i <= N; ++i) {
-        successPlayer = count_if(stages.begin(), stages.end(), [i](int x) {return i < x;});      
-        failPlayer = count(stages.begin(), stages.end(), i);
+    for(int i = 0; i < N; ++i) {
+        failedPlayers = players[i]; 
         
-        if(successPlayer == 0 && failPlayer == 0) {
-            fail[i] = 0;
-            continue;
-        }
+        if(totalPlayers == 0)
+            failRate = 0;
+        else
+            failRate = failedPlayers / totalPlayers;
         
-        fail[i] = failPlayer / successPlayer;    
+        result[i].first = failRate;
+        result[i].second = i + 1;
+        
+        totalPlayers -= players[i];
     }
     
-    // 실패율이 높은 순서대로 내림차순 정렬
-    while(find(isPush.begin(), isPush.end(), false) != isPush.end()) {
-        double maxFail = *max_element(fail.begin(), fail.end());
-        
-        auto it = fail.begin();
-        while((it = find(it, fail.end(), maxFail)) != fail.end()) {
-            int idx = distance(fail.begin(), it);
-            
-            answer.push_back(idx);
-            
-            fail[idx] = -1;
-            isPush[idx] = true;
-        }
-    }
+    sort(result.begin(), result.end(), cmp);
+    
+    vector<int> answer;
+    for(const auto &e : result)
+        answer.push_back(e.second);
     
     return answer;
 }
