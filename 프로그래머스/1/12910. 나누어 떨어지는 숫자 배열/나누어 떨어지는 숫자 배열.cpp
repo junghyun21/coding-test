@@ -15,7 +15,7 @@ vector<int> solution(vector<int> arr, int divisor) {
         }
     }
     
-    if(answer.size() == 0)
+    if(answer.empty())
         answer.push_back(-1);
     
     return answer;
