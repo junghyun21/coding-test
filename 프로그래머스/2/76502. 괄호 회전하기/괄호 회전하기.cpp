@@ -5,42 +5,21 @@ using namespace std;
 
 bool isCorrect(string s) {
     stack<char> stack;
+    
     for(const auto &c : s) {
-        if(c == '(') {
+        if(c == '(' || c == '{' || c == '[') {
             stack.push(c);
-        }   
-        else if(c == ')'){
-            if(stack.empty() || stack.top() != '(') { 
-                return false;
-            }
+        }  
+        else {
+            if(stack.empty()) return false;
             else {
-                stack.pop();
-            }
-        }
-        else if(c == '{') {
-            stack.push(c);
-        }
-        else if(c == '}') {
-            if(stack.empty() || stack.top() != '{') { 
-                return false;
-            }
-            else {
-                stack.pop();
-            }
-        }
-        else if(c == '[') {
-            stack.push(c);
-        }
-        else if(c == ']') {
-            if(stack.empty() || stack.top() != '[') { 
-                return false;
-            }
-            else {
-                stack.pop();
+                if(stack.top() == '(' && c == ')') stack.pop();
+                else if(stack.top() == '{' && c == '}') stack.pop();
+                else if(stack.top() == '[' && c == ']') stack.pop();
             }
         }
     }
-        
+    
     return stack.empty();
 }
 
