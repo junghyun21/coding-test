@@ -1,48 +1,51 @@
 #include <vector>
 #include <queue>
-#include <algorithm>
+#include <unordered_set>
 
 using namespace std;
 
 typedef struct Node {
-    int num;
-    int sheep;
+    unordered_set<int> neighbor;
+    int cur;
     int wolf;
-    vector<int> adjList;
+    int sheep;
 } Node;
 
 int solution(vector<int> info, vector<vector<int>> edges) {
+    vector<vector<int>> adjList(info.size());
+    for(int i = 0; i < edges.size(); ++i) {
+        adjList[edges[i][0]].emplace_back(edges[i][1]);
+    }
+    
+    queue <Node> q;
+    q.push({unordered_set<int>(adjList[0].begin(), adjList[0].end()), 0, 0, 1});
+    
     int answer = 0;
     
-    vector<vector<int>> tree(info.size());
-    for(const auto &edge : edges) 
-        tree[edge[0]].push_back(edge[1]);
-    
-    queue<Node> q;
-    q.push({0, 1, 0, tree[0]});
-    
     while(!q.empty()) {
-        Node curr = q.front();
+        Node node = q.front();
         q.pop();
         
-        answer = max(answer, curr.sheep);
+        answer = (answer < node.sheep) ? node.sheep : answer;
         
-        for(const int &neighbor : curr.adjList) {
-            int sheep = curr.sheep;
-            int wolf = curr.wolf;
+        for(const int &next : node.neighbor) {
+            int newWolf = node.wolf;
+            int newSheep = node.sheep;
             
-            info[neighbor] ? ++wolf : ++sheep;
+            (info[next] == 1) ? ++newWolf : ++newSheep;
             
-            if(wolf < sheep) {
-                vector<int> adjList = curr.adjList;
+            if(newWolf < newSheep) {
+                unordered_set<int> newNeighbor = node.neighbor;
                 
-                adjList.erase(remove(adjList.begin(), adjList.end(), neighbor), adjList.end());
-                adjList.insert(adjList.end(), tree[neighbor].begin(), tree[neighbor].end());
-                              
-                q.push({neighbor, sheep, wolf, adjList});
-            }        
+                newNeighbor.erase(next);
+                newNeighbor.insert(adjList[next].begin(), adjList[next].end());
+                
+                q.push({newNeighbor, next, newWolf, newSheep});
+            }
+    
         }
     }
+    
     
     return answer;
 }
