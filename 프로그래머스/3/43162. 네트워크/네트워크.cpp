@@ -1,43 +1,51 @@
-#include <algorithm>
 #include <vector>
+#include <unordered_set>
 
 using namespace std;
 
-vector<int> parent;
+int roots[200];
+int ranks[200];
 
-int find(int x) {
-    if(x == parent[x])
-        return x;
+int find(int node) {
+    if(node != roots[node]) {
+        roots[node] = find(roots[node]);
+    }
     
-    return parent[x] = find(parent[x]);
+    return roots[node];
+}
+
+void union_root(int x, int y) {
+    int rootX = find(x);
+    int rootY = find(y);
+    
+    if(rootX != rootY) {
+        roots[rootX] = rootY;
+    }
+    
+    return;
 }
 
 int solution(int n, vector<vector<int>> computers) {
     for(int i = 0; i < n; ++i) {
-        parent.push_back(i);
+        roots[i] = i;
     }
     
-    for(int i = 0; i < n; ++i) {
-        int root = find(i);
-        
+    for(int i = 0; i < n - 1; ++i) {
         for(int j = i + 1; j < n; ++j) {
             if(computers[i][j]) {
-                int temp = find(j);
-                
-                if(temp != root)
-                    parent[temp] = root;
+                union_root(i, j);
             }
         }
     }
     
-    // 최종적으로 각 원소의 대표(root)를 갱신
-    // 집합들을 합치는 과정에서 경로 단축을 하지 않았기 때문
-    for (int i = 0; i < n; ++i) {
-        parent[i] = find(i);
+    for(int i = 0; i < n; ++i) {
+        find(i);     // 최종 경로 단축
     }
     
-    sort(parent.begin(), parent.end());
-    parent.erase(unique(parent.begin(), parent.end()), parent.end());
+    unordered_set<int> root_set;
+    for(int i = 0; i < n; ++i) {
+        root_set.insert(roots[i]);
+    }
     
-    return parent.size();
+    return root_set.size();
 }
