@@ -1,43 +1,42 @@
-#include <queue>
-#include <tuple>
+#include <string>
 #include <vector>
+#include <queue>
 
 using namespace std;
 
-const int x[4] = {0, 0, 1, -1};
-const int y[4] = {1, -1, 0, 0};
+const int dr[] = {0, 0, -1, 1};
+const int dc[] = {-1, 1, 0, 0};
 
-bool maze[102][102];
+struct node {
+    int r;
+    int c;
+    int time;
+};
 
-int bfs(const pair<int, int> &start, const pair<int, int> &target) {
-    int distance = 0;
-    bool isFind = false;
-    bool visited[102][102] = {false};
+int bfs(const vector<string> &maps, const pair<int, int> &start, const char &end) {
+    vector<vector<bool>> visited(maps.size(), vector<bool>(maps[0].size(), false));
+    queue<node> q;
     
-    queue<pair<pair<int, int>, int>> q; // <x좌표, y좌표, 거리>
-    q.push({start, 0});
+    q.push({start.first, start.second, 0});
+    visited[start.first][start.second] = true;
     
     while(!q.empty()) {
-        pair<int, int> curr = q.front().first;
-        int d = q.front().second;
+        int curR = q.front().r;
+        int curC = q.front().c;
+        int curTime = q.front().time;
         q.pop();
         
-        if(visited[curr.first][curr.second])
-            continue;
-        
-        visited[curr.first][curr.second] = true;
-        
         for(int i = 0; i < 4; ++i) {
-            int newX = curr.first + x[i];
-            int newY = curr.second + y[i];
-            auto p = make_pair(newX, newY);
+            int newR = curR + dr[i];
+            int newC = curC + dc[i];
             
-            if(p == target) {
-                return d + 1;
+            if(maps[newR][newC] == end) {
+                return curTime + 1;
             }
             
-            if(maze[newX][newY] && !visited[newX][newY]) {
-                q.push({p, d + 1});
+            if(!visited[newR][newC] && maps[newR][newC] != 'X') {
+                q.push({newR, newC, curTime + 1});
+                visited[newR][newC] = true;
             }
         }
     }
@@ -46,50 +45,32 @@ int bfs(const pair<int, int> &start, const pair<int, int> &target) {
 }
 
 int solution(vector<string> maps) {
+    vector<string> new_maps(maps.size() + 2, string(maps[0].size() + 2, 'X'));
     pair<int, int> start;
     pair<int, int> laber;
     pair<int, int> end;
     
     for(int i = 0; i < maps.size(); ++i) {
         for(int j = 0; j < maps[i].size(); ++j) {
-            switch(maps[i][j]) {
-                case 'S':
-                    start.first = i + 1;
-                    start.second = j + 1;
-                    maze[i + 1][j + 1] = true;
-                    break;
-                case 'E':
-                    end.first = i + 1;
-                    end.second = j + 1;
-                    maze[i + 1][j + 1] = true;
-                    break;
-                case 'L':
-                    laber.first = i + 1;
-                    laber.second = j + 1;
-                    maze[i + 1][j + 1] = true;
-                    break;
-                case 'O':
-                    maze[i + 1][j + 1] = true;
+            if(maps[i][j] == 'S') {
+                start = {i + 1, j + 1};
             }
+            else if(maps[i][j] == 'L') {
+                laber = {i + 1, j + 1};
+            }
+            new_maps[i + 1][j + 1] = maps[i][j];
         }
     }
     
-    int answer = 0;
-    int temp;
-    
-    if((temp = bfs(start, laber)) == -1) {
+    int StoL = bfs(new_maps, start, 'L');
+    if(StoL == -1) {
         return -1;
     }
-    else {
-        answer += temp;
-    }
-       
-   if((temp = bfs(laber, end)) == -1) {
+    
+    int LtoO = bfs(new_maps, laber, 'E');
+    if(LtoO == -1) {
         return -1;
     }
-    else {
-        answer += temp;
-    }
-    
-    return answer;
+
+    return StoL + LtoO;
 }
