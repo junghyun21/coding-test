@@ -1,53 +1,45 @@
 #include <vector>
-#include <iostream>
+#include <algorithm>
+#include <limits>
+#include <cmath>
 
 using namespace std;
 
-vector<vector<int>> adj;
-vector<int> node_cnt;
-vector<bool> visited;
-
-void dfs(const int &n, const int &curr, int &answer) {    
-    visited[curr] = true;
+int dfs(int cur, int parent, const vector<vector<int>> &tree) {
+    int cnt = 1;
     
-    for(int i = 0; i < adj[curr].size(); ++i) {
-        int child = adj[curr][i];
-        
-        if(visited[child]) {
-            continue;
+    for(const int &child : tree[cur]) {
+        if(child != parent) {
+            cnt += dfs(child, cur, tree);
         }
-        
-        visited[child] = true;
-        dfs(n, child, answer);
-        
-        node_cnt[curr] += node_cnt[child];
     }
     
-    int power1 = node_cnt[curr];
-    int power2 = n - node_cnt[curr];
-    int diff = power1 > power2 ? power1 - power2 : power2 - power1;
-    
-    answer = min(answer, diff);
-
-    return;
+    return cnt;
 }
 
-int solution(int n, vector<vector<int>> wires) {   
-    int answer = n;
-    
-    // 리프노드(root)부터 시작 -> 1 <-> n-1, 2 <-> n-2, ...
-    // 1. 인접리스트 만들기
-    adj.resize(n + 1);
+int solution(int n, vector<vector<int>> wires) {
+    vector<vector<int>> tree(n + 1);
     for(const auto &wire : wires) {
-        adj[wire[0]].push_back(wire[1]);
-        adj[wire[1]].push_back(wire[0]);
+        tree[wire[0]].emplace_back(wire[1]);
+        tree[wire[1]].emplace_back(wire[0]);
     }
     
-    // 2. 각 노드들의 자식 개수 구한 후, 전력망 나누면서 차이 값 비교 (dfs)
-    visited.resize(n + 1);
-    node_cnt.resize(n + 1, 1);
+    int min_diff = numeric_limits<int>::max();
+    for(const auto &wire : wires) {
+        int u = wire[0];
+        int v = wire[1];
+        
+        tree[u].erase(remove(tree[u].begin(), tree[u].end(), v), tree[u].end());
+        tree[v].erase(remove(tree[v].begin(), tree[v].end(), u), tree[v].end());
+        
+        int u_cnt = dfs(u, v, tree);
+        int v_cnt = n - u_cnt;
+        
+        min_diff = min(min_diff, abs(u_cnt - v_cnt));
+        
+        tree[u].emplace_back(v);
+        tree[v].emplace_back(u);
+    }
     
-    dfs(n, 1, answer);
-    
-    return answer;
+    return min_diff;
 }
